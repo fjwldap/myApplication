@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
@@ -21,8 +22,10 @@ import com.example.myapplication.dto.mInfo.MovieInfo;
 import com.example.myapplication.service.MovieApiManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Function;
@@ -37,12 +40,10 @@ public class SearchFragment extends Fragment {
     MainActivity mainActivity;
     private RecyclerView recyclerView;
 
-    //    private String word = "사랑";
+    private Button buttonSDetail;//디테일팝업 띄우기
     private ArrayList<MovieInfo> list;
     private int page;
     private boolean[] types = new boolean[19];//체크된 장르
-    private Spinner spinnerSort;
-    private String selectedSort = "개봉일순";
 
     private ProgressDialog progressDialog;
 
@@ -74,15 +75,10 @@ public class SearchFragment extends Fragment {
                 Boolean isYearChecked = bundle.getBoolean("yearCheck");
                 String yearStart = bundle.getString("yearStart");
                 String yearEnd = bundle.getString("yearEnd");
-                types = bundle.getBooleanArray("types");
 
-                if (isYearChecked)
-                    func(word);//연도조건 검색
-                else
-                    func(word);
+                func(word, isYearChecked, yearStart, yearEnd);//연도조건 검색
             }
         });
-
 
         getChildFragmentManager().setFragmentResultListener("searchWord", this, new FragmentResultListener() {
             @Override
@@ -92,16 +88,33 @@ public class SearchFragment extends Fragment {
                 String yearStart = bundle.getString("yearStart");
                 String yearEnd = bundle.getString("yearEnd");
 
-                if (isYearChecked)
-                    func(word);//연도조건 검색
-                else
-                    func(word);
+                func(word, isYearChecked, yearStart, yearEnd);//연도조건 검색
             }
         });
+
+        buttonSDetail.setOnClickListener(new View.OnClickListener() {// 장르 팝업
+            @Override
+            public void onClick(View view) {
+                Bundle bundle = new Bundle();
+                bundle.putBooleanArray("types",types);
+                GenrePopup genrePopup = GenrePopup.newInstance();
+
+                genrePopup.setArguments(bundle); // 데이터 전달
+
+                genrePopup.show(getActivity().getSupportFragmentManager(),"genre");
+                genrePopup.setGenre(new GenrePopup.SetGenreIntf() {
+                    @Override
+                    public void finish(boolean[] arr) {//인터페이스를 통해 장르값 전달
+                        types = arr;
+                    }
+                });
+            }
+        });
+
         return rootview;
     }
 
-    private void func(String word) {
+    private void func(String word, boolean isYearChecked, String yearStart, String yearEnd) {
         //진행다일로그 시작
         progressDialog = new ProgressDialog(mainActivity);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -113,10 +126,17 @@ public class SearchFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         mManager = new MovieApiManager();
-        Observable<String> observable = mManager.getCount(word, "2020", "2020")
-                .doOnComplete(() -> {
+        Observable<String> observable;
+        if (isYearChecked)//연도 적용
+            observable = mManager.getCount(word, yearStart, yearEnd)
+                    .doOnComplete(() -> {
 
-                });
+                    });
+        else//연도 미적용 (기본)
+            observable = mManager.getCount(word)
+                    .doOnComplete(() -> {
+
+                    });
 
         CompositeDisposable compositeDisposable = new CompositeDisposable();
         compositeDisposable
@@ -137,7 +157,11 @@ public class SearchFragment extends Fragment {
                                         ArrayList<Observable<ArrayList<MovieInfo>>> observableList = new ArrayList<>();
 
                                         for (int c = 1; c <= page; c++) {
-                                            observableList.add(mManager.getListwithYear(word, c + "", "2020", "2020"));
+                                            if (isYearChecked)
+                                                observableList.add(mManager.getListwithYear(word, c + "", yearStart, yearEnd));
+                                            else
+                                                observableList.add(mManager.getList(word, c + ""));
+
 
                                             CompositeDisposable compositeDisposable1 = new CompositeDisposable();
                                             compositeDisposable1
@@ -214,12 +238,11 @@ public class SearchFragment extends Fragment {
     }
 
     private void init() {
+        buttonSDetail = (Button) rootview.findViewById(R.id.buttonSDetail);
         recyclerView = (RecyclerView) rootview.findViewById(R.id.recyclerView);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mainActivity);
         recyclerView.setLayoutManager(linearLayoutManager);
-
-//        spinnerSort = (Spinner) rootview.findViewById(R.id.spinnerSort);
     }
 
     public void getData() {//리사이클러뷰에 추가

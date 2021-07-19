@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+        <color name="colorPrimary">#84cdc2</color>
+        <color name="colorPrimaryDark">#5ea096</color>
+        <color name="colorAccent">#fb777a</color>
+
+        <!--팝업배경-->
+        <color name="dialogColor">#A6333333</color>
 </resources>

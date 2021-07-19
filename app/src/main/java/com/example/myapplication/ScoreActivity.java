@@ -28,7 +28,7 @@ public class ScoreActivity extends AppCompatActivity {
         String movieDate = intent.getStringExtra("date");
         code = intent.getStringExtra("code");
 
-            textViewName.setText(movieName);
+        textViewName.setText(movieName);
 
         buttonexitScore.setOnClickListener(new View.OnClickListener() {//닫기
             @Override
