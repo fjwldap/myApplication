@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,10 +21,8 @@ import com.example.myapplication.dto.mInfo.MovieInfo;
 import com.example.myapplication.service.MovieApiManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Function;
@@ -40,10 +37,8 @@ public class SearchFragment extends Fragment {
     MainActivity mainActivity;
     private RecyclerView recyclerView;
 
-    private Button buttonSDetail;//디테일팝업 띄우기
-    private ArrayList<MovieInfo> list;
+    private ArrayList<MovieInfo> movieList;
     private int page;
-    private boolean[] types = new boolean[19];//체크된 장르
 
     private ProgressDialog progressDialog;
 
@@ -68,18 +63,6 @@ public class SearchFragment extends Fragment {
 
         init();
 
-        getChildFragmentManager().setFragmentResultListener("searchDetailInfo", this, new FragmentResultListener() {
-            @Override
-            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-                String word = bundle.getString("word");
-                Boolean isYearChecked = bundle.getBoolean("yearCheck");
-                String yearStart = bundle.getString("yearStart");
-                String yearEnd = bundle.getString("yearEnd");
-
-                func(word, isYearChecked, yearStart, yearEnd);//연도조건 검색
-            }
-        });
-
         getChildFragmentManager().setFragmentResultListener("searchWord", this, new FragmentResultListener() {
             @Override
             public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
@@ -89,25 +72,6 @@ public class SearchFragment extends Fragment {
                 String yearEnd = bundle.getString("yearEnd");
 
                 func(word, isYearChecked, yearStart, yearEnd);//연도조건 검색
-            }
-        });
-
-        buttonSDetail.setOnClickListener(new View.OnClickListener() {// 장르 팝업
-            @Override
-            public void onClick(View view) {
-                Bundle bundle = new Bundle();
-                bundle.putBooleanArray("types",types);
-                GenrePopup genrePopup = GenrePopup.newInstance();
-
-                genrePopup.setArguments(bundle); // 데이터 전달
-
-                genrePopup.show(getActivity().getSupportFragmentManager(),"genre");
-                genrePopup.setGenre(new GenrePopup.SetGenreIntf() {
-                    @Override
-                    public void finish(boolean[] arr) {//인터페이스를 통해 장르값 전달
-                        types = arr;
-                    }
-                });
             }
         });
 
@@ -121,7 +85,7 @@ public class SearchFragment extends Fragment {
         progressDialog.setMessage("잠시 기다려 주세요.");//헐 팝업처럼 뜨네
         progressDialog.show();
 
-        list = new ArrayList<>();
+        movieList = new ArrayList<>();
         adapter = new RecyclerAdapter(mainActivity);
         recyclerView.setAdapter(adapter);
 
@@ -180,10 +144,9 @@ public class SearchFragment extends Fragment {
                                                                                     }
 
                                                                                     if (isOk) {
-                                                                                        list.add(value.get(i));
+                                                                                        movieList.add(value.get(i));//가능한 영화만 넣는다
                                                                                     }
                                                                                 }
-//                                                                Log.v("aa", "asdfasdf " + value.get(i).getMovieNm());
                                                                             }
                                                                         }
 
@@ -195,7 +158,7 @@ public class SearchFragment extends Fragment {
 
                                                                         @Override
                                                                         public void onComplete() {
-                                                                            Log.v("aa", "총" + list.size());
+                                                                            Log.v("aa", "총" + movieList.size());
 
                                                                         }
                                                                     })
@@ -207,8 +170,8 @@ public class SearchFragment extends Fragment {
                                                     @Override
                                                     public Object apply(Object[] objects) throws Exception {
 
-                                                        Log.v("aa", "출력하자" + list.size());
-                                                        getData();
+                                                        Log.v("aa", "출력하자" + movieList.size());
+                                                        getData(movieList);
                                                         progressDialog.dismiss();//잠시기다려주세요 뜬 메시지 지운다
 
                                                         return null;
@@ -238,14 +201,13 @@ public class SearchFragment extends Fragment {
     }
 
     private void init() {
-        buttonSDetail = (Button) rootview.findViewById(R.id.buttonSDetail);
         recyclerView = (RecyclerView) rootview.findViewById(R.id.recyclerView);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mainActivity);
         recyclerView.setLayoutManager(linearLayoutManager);
     }
 
-    public void getData() {//리사이클러뷰에 추가
+    public void getData(ArrayList<MovieInfo> list) {//리사이클러뷰에 추가
         Log.v("aa", "a-----------" + list.size());
         for (MovieInfo m : list) {
             DataMovie dm = new DataMovie();

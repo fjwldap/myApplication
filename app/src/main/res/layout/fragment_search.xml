@@ -55,17 +55,6 @@
                     android:layout_marginRight="10dp"
                     android:entries="@array/순" />
 
-                <Button
-                    android:id="@+id/buttonSDetail"
-                    android:layout_width="63dp"
-                    android:layout_height="match_parent"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingLeft="0dp"
-                    android:paddingTop="0dp"
-                    android:paddingRight="0dp"
-                    android:paddingBottom="0dp"
-                    android:text="장르" />
             </LinearLayout>
 
             <LinearLayout
