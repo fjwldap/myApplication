@@ -16,7 +16,6 @@ import com.example.myapplication.dto.mNaver.NaverMovie;
 
 public class AboutActivity extends AppCompatActivity {
     private String code;
-    private String MYKEY = "9db1c08ae0d6c721bc3f57b4851d9f97";
     private MovieInfo movieInfo;
     private NaverMovie naverMovie;
     private String NaverLink;

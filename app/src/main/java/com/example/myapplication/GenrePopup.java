@@ -64,7 +64,7 @@ public class GenrePopup extends DialogFragment implements CompoundButton.OnCheck
             }
         });
 
-        buttonReset.setOnClickListener(new View.OnClickListener() {
+        buttonReset.setOnClickListener(new View.OnClickListener() {//리셋
             @Override
             public void onClick(View v) {
                 for (int i = 0; i < 19; i++) {//장르 개수
